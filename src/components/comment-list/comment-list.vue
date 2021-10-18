@@ -28,10 +28,11 @@
 				<div style="text-align: right;">
 					<image class="replyImg" @click="toReply(index)" src="@/static/reply.jpg" mode=""></image>
 				</div>
-				<div>
+				<div :class="{replyWrap: item.replys.length > 0}">
 					<block v-for="reply in item.replys">
-						<div>
-							<span>{{reply.userName}}</span>
+						<div style="line-height: 30px;">
+							<span style="color: rgb(87, 132, 200);">{{reply.userName}}</span>
+							<span style="margin: 0 10rpx;">:</span>
 							<span>{{reply.replyContent}}</span>
 						</div>
 					</block>
@@ -77,11 +78,12 @@
 				userInfo: {},
 				fontNum: 0,
 				replyContent: "",
-				currentIndex: -1
+				currentIndex: -1,
+				page: 1
 			};
 		},
 		created() {
-			this.getComment();
+			this.getComment(1,8);
 		},
 		methods: {
 			showPopup() {
@@ -148,7 +150,7 @@
 					this.content = "";
 					this.uploadFiles = [];
 					this.realFilesUrl = [];
-					this.getComment();
+					this.getComment(this.page,8);
 					uni.hideLoading();
 				}
 			},
@@ -156,12 +158,22 @@
 				this.uploadFiles.splice(index, 1);
 				this.realFilesUrl.splice(index, 1);
 			},
-			async getComment() {
+			async getComment(page,size) {
 				uni.showLoading({
 					title: "加载中",
 				});
-				const result = await this.$api.getComment()
-				console.log(result);
+				const result = await this.$api.getComment({page,size})
+				console.log('result',result);
+				if(result.length === this.commentInfo.length) {
+					uni.showToast({
+					    title: '没有更多数据~',
+						icon: 'error',
+						duration: 1000
+					});
+					setTimeout(() => {
+						uni.hideToast();
+					},1000)
+				}
 				uni.hideLoading();
 				this.commentInfo = result;
 			},
@@ -177,6 +189,7 @@
 				this.currentIndex = index
 			},
 			async sendReply(item) {
+				console.log(item);
 				if (!this.replyContent) {
 					this.$Message({
 						type: "warning",
@@ -195,9 +208,14 @@
 				if (result.id) {
 					this.currentIndex = -1;
 					this.replyContent = "";
-					this.getComment();
+					this.getComment(this.page,8);
 					uni.hideLoading();
 				}
+			},
+			loadMore() {
+				this.page++
+				console.log('loadMore',this.page);
+				this.getComment(this.page,8)
 			}
 		},
 	}
@@ -278,6 +296,11 @@
 				height: 36rpx;
 			}
 
+			.replyWrap {
+				background: rgb(247, 247, 247);
+				padding: 20rpx;
+			}
+			
 			.reply {
 				border: 2rpx solid green;
 				padding: 6rpx 10rpx;

@@ -2,7 +2,8 @@
 const db = uniCloud.database();
 exports.main = async (event, context) => {
 	//event为客户端上传的参数
-	const collection = await db.collection('userInfo').orderBy("createAt", "desc").get();
+	const { page, size } = event
+	const collection = await db.collection('userInfo').limit(page * size).orderBy("createAt", "desc").get();
 	const res = Object.assign({},collection)
 	for (let item of res.data) {
 		const reply = await db.collection('reply').where({

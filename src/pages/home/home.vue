@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <comment-list></comment-list>
+    <comment-list ref="commentRef"></comment-list>
   </div>
 </template>
 
@@ -13,6 +13,9 @@ export default Vue.extend({
   },
   components: {},
   methods: {},
+  onReachBottom() {
+	(this.$refs.commentRef as any).loadMore()
+  },
 });
 </script>
 
